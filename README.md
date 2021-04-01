@@ -1,4 +1,4 @@
-# QUantized SDK
+# Quantized SDK
 
 [![Unit Tests](https://github.com/quantized-finance/quantized-sdk/workflows/Unit%20Tests/badge.svg)](https://github.com/Uniswap/uniswap-v2-sdk/actions?query=workflow%3A%22Unit+Tests%22)
 [![Lint](https://github.com/quantized-finance/quantized-sdk/workflows/Lint/badge.svg)](https://github.com/quantized-finance/quantized-sdk/actions?query=workflow%3ALint)
