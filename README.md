@@ -6,4 +6,4 @@
 [![npm version](https://img.shields.io/npm/v/@quantized/sdk/latest.svg)](https://www.npmjs.com/package/@quantized/sdk/latest)
 [![npm bundle size (scoped version)](https://img.shields.io/bundlephobia/minzip/@quantized/sdk/latest.svg)](https://bundlephobia.com/result?p=@quantized/sdk@latest)
 
-In-depth documentation on this SDK is available at [docs.quantized.finance](https://docs.quantized.finance/docs/SDK/getting-started/).
+In-depth documentation on this SDK is available (or will be soon) at [docs.quantized.finance](https://docs.quantized.finance/docs/SDK/getting-started/).

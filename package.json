@@ -1,19 +1,20 @@
 {
-  "name": "@uniswap/v2-sdk",
+  "name": "@quantized/sdk",
   "license": "MIT",
   "version": "1.0.7",
-  "description": "🛠 An SDK for building applications on top of Uniswap V2",
+  "description": "🛠 An SDK for anhancing ERC20 tokens with batch transfers",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/Uniswap/uniswap-v2-sdk.git",
+  "repository": "https://github.com/quantized-finance/quantized-sdk.git",
   "keywords": [
+    "quantized",
     "uniswap",
     "ethereum"
   ],
-  "module": "dist/v2-sdk.esm.js",
+  "module": "dist/sdk.esm.js",
   "scripts": {
     "lint": "tsdx lint src test",
     "build": "tsdx build",
