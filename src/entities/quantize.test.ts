@@ -1,7 +1,4 @@
-import { QuantizedToken } from './token'
-import { Quantize } from './quantize'
-import JSBI from 'jsbi'
-import { ChainId, ETHER, CurrencyAmount, Percent, Token, TokenAmount, TradeType, WETH9 } from '@uniswap/sdk-core'
+import { ChainId, Token } from '@uniswap/sdk-core'
 
 describe('Trade', () => {
   const token0 = new Token(ChainId.MAINNET, '0x0000000000000000000000000000000000000001', 18, 't0')

@@ -2,13 +2,15 @@ import {
   CurrencyAmount,
 } from '@uniswap/sdk-core'
 
-import { QuantizedToken } from './token'
+import {
+  QuantizedToken,
+} from '@quantized/sdk-core'
 
 export declare enum QuantizeType {
   QUANTIZE = 0,
-  QUANTIZE_ETH = 2,
-  DEQUANTIZE = 3,
-  DEQUANTIZE_WITH_ETH = 4
+  QUANTIZE_ETH = 1,
+  DEQUANTIZE = 2,
+  DEQUANTIZE_WITH_ETH = 3
 }
 
 /**
