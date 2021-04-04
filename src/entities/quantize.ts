@@ -1,13 +1,33 @@
 import {
+  ChainId,
+  Currency,
   CurrencyAmount,
-  TokenAmount,
-  Token
+  ETHER,
+  Token,
+  TokenAmount
 } from '@uniswap/sdk-core'
 
-export declare enum QuantizeType {
-  QUANTIZE = 0,
-  QUANTIZE_ETH = 1,
-  DEQUANTIZE = 2,
+import { QUANTA, QuantizedToken } from '../entities/token'
+
+import { QuantizeType } from '../constants'
+
+import invariant from 'tiny-invariant'
+
+/**
+ * Given a currency amount and a chain ID, returns the equivalent representation as the token amount.
+ * In other words, if the currency is ETHER, returns the WETH9 token amount for the given chain. Otherwise, returns
+ * the input currency amount.
+ */
+export function quantizedAmount(currencyAmount: CurrencyAmount, chainId: ChainId): TokenAmount {
+  if (currencyAmount instanceof TokenAmount) return currencyAmount
+  if (currencyAmount.currency === ETHER) return new TokenAmount(QUANTA[chainId], currencyAmount.raw)
+  invariant(false, 'CURRENCY')
+}
+
+export function quantizedCurrency(currency: Currency, chainId: ChainId): Token {
+  if (currency instanceof Token) return currency
+  if (currency === ETHER) return QUANTA[chainId]
+  invariant(false, 'CURRENCY')
 }
 
 /**
@@ -16,50 +36,63 @@ export declare enum QuantizeType {
  */
 export class Quantize {
   /**
-   * The route of the trade, i.e. which pairs the trade goes through.
+   * The token or currency 
    */
-  public readonly token: Token | undefined
+  public readonly token: Token | QuantizedToken | Currency
   /**
-   * The type of the quantization, quantize, dequantize, quantizeEth, dequantizeWithEth
+   * The type of the quantize op
    */
-  public readonly quantizeType: QuantizeType
-  
+  public readonly tradeType: QuantizeType
   /**
-   * The input amount for the trade assuming no slippage.
+   * The input amount for the quantize
    */
-  public readonly amount: CurrencyAmount | TokenAmount
-  
+  public readonly inputAmount: CurrencyAmount
   /**
-   * Constructs a quantize op given a token and an amount
+   * The output amount for the quantize after fees
+   */
+  public readonly outputAmount: CurrencyAmount
+
+  /**
+   * Constructs an exact in trade with the given amount in and route
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static quantize(amountIn: TokenAmount): Quantize {
-    return new Quantize(amountIn, QuantizeType.QUANTIZE)
+  public static quantize(token: Token, amountIn: CurrencyAmount): Quantize {
+    return new Quantize(token, amountIn, QuantizeType.QUANTIZE)
   }
 
   /**
-   * Constructs a quantize op given a token and an amount
+   * Constructs an exact in trade with the given amount in and route
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static quantizeEth(amountIn: CurrencyAmount): Quantize {
-    return new Quantize(amountIn, QuantizeType.QUANTIZE_ETH)
+  public static quantizeEth(token: Currency, amountIn: CurrencyAmount): Quantize {
+    return new Quantize(token, amountIn, QuantizeType.QUANTIZE_ETH)
   }
 
   /**
-   * Constructs a dequantize op given a token and an amount
+   * Constructs an exact in trade with the given amount in and route
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static dequantize(amountIn: TokenAmount): Quantize {
-    return new Quantize(amountIn, QuantizeType.DEQUANTIZE)
+    public static dequantize(token: QuantizedToken, amountIn: CurrencyAmount): Quantize {
+    return new Quantize(token, amountIn, QuantizeType.DEQUANTIZE)
   }
 
-  public constructor(amount: TokenAmount | CurrencyAmount, qType: QuantizeType) {
-    this.token = amount instanceof TokenAmount ? amount.token : undefined
-    this.quantizeType = qType
-    this.amount = amount
+
+  public constructor(token: Token | QuantizedToken | Currency, amount: CurrencyAmount, quantizeType: QuantizeType) {
+
+    this.token = token
+    this.tradeType = quantizeType
+    this.inputAmount =
+    quantizeType === QuantizeType.QUANTIZE || QuantizeType.DEQUANTIZE
+        ? amount
+        : CurrencyAmount.ether(amount.raw)
+    this.outputAmount =
+    quantizeType === QuantizeType.QUANTIZE || QuantizeType.DEQUANTIZE
+        ? amount
+        : CurrencyAmount.ether(amount.raw)
+
   }
 
 }

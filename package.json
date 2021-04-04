@@ -24,6 +24,7 @@
     "dependencies": {
         "@ethersproject/address": "^5.0.0",
         "@ethersproject/solidity": "^5.0.0",
+        "@uniswap/sdk": "^3.0.3",
         "@uniswap/sdk-core": "^1.0.9",
         "tiny-invariant": "^1.1.0",
         "tiny-warning": "^1.0.3"

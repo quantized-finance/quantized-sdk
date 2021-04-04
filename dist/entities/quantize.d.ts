@@ -1,43 +1,51 @@
-import { CurrencyAmount, TokenAmount, Token } from '@uniswap/sdk-core';
-export declare enum QuantizeType {
-    QUANTIZE = 0,
-    QUANTIZE_ETH = 1,
-    DEQUANTIZE = 2
-}
+import { ChainId, Currency, CurrencyAmount, Token, TokenAmount } from '@uniswap/sdk-core';
+import { QuantizedToken } from '../entities/token';
+import { QuantizeType } from '../constants';
+/**
+ * Given a currency amount and a chain ID, returns the equivalent representation as the token amount.
+ * In other words, if the currency is ETHER, returns the WETH9 token amount for the given chain. Otherwise, returns
+ * the input currency amount.
+ */
+export declare function quantizedAmount(currencyAmount: CurrencyAmount, chainId: ChainId): TokenAmount;
+export declare function quantizedCurrency(currency: Currency, chainId: ChainId): Token;
 /**
  * Represents a trade executed against a list of pairs.
  * Does not account for slippage, i.e. trades that front run this trade and move the price.
  */
 export declare class Quantize {
     /**
-     * The route of the trade, i.e. which pairs the trade goes through.
+     * The token or currency
      */
-    readonly token: Token | undefined;
+    readonly token: Token | QuantizedToken | Currency;
     /**
-     * The type of the quantization, quantize, dequantize, quantizeEth, dequantizeWithEth
+     * The type of the quantize op
      */
-    readonly quantizeType: QuantizeType;
+    readonly tradeType: QuantizeType;
     /**
-     * The input amount for the trade assuming no slippage.
+     * The input amount for the quantize
      */
-    readonly amount: CurrencyAmount | TokenAmount;
+    readonly inputAmount: CurrencyAmount;
     /**
-     * Constructs a quantize op given a token and an amount
+     * The output amount for the quantize after fees
+     */
+    readonly outputAmount: CurrencyAmount;
+    /**
+     * Constructs an exact in trade with the given amount in and route
      * @param route route of the exact in trade
      * @param amountIn the amount being passed in
      */
-    static quantize(amountIn: TokenAmount): Quantize;
+    static quantize(token: Token, amountIn: CurrencyAmount): Quantize;
     /**
-     * Constructs a quantize op given a token and an amount
+     * Constructs an exact in trade with the given amount in and route
      * @param route route of the exact in trade
      * @param amountIn the amount being passed in
      */
-    static quantizeEth(amountIn: CurrencyAmount): Quantize;
+    static quantizeEth(token: Currency, amountIn: CurrencyAmount): Quantize;
     /**
-     * Constructs a dequantize op given a token and an amount
+     * Constructs an exact in trade with the given amount in and route
      * @param route route of the exact in trade
      * @param amountIn the amount being passed in
      */
-    static dequantize(amountIn: TokenAmount): Quantize;
-    constructor(amount: TokenAmount | CurrencyAmount, qType: QuantizeType);
+    static dequantize(token: QuantizedToken, amountIn: CurrencyAmount): Quantize;
+    constructor(token: Token | QuantizedToken | Currency, amount: CurrencyAmount, quantizeType: QuantizeType);
 }

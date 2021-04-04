@@ -4,6 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
+require('jsbi');
 var sdkCore = require('@uniswap/sdk-core');
 var invariant = _interopDefault(require('tiny-invariant'));
 var solidity = require('@ethersproject/solidity');
@@ -15,6 +16,13 @@ var MULTITOKEN_ADDRESS = '0xf377E4CDd42C3Acf37D01dB69Fe8E669c7Afb11B';
 var FEETRACKER_ADDRESS = '0xea6EC95E6FdeD7B30c147979c8CC76B729ac3d16';
 var QUANTA_ADDRESS = '0x7017453C48d67f8C63e0335d6781CB49089b26cF';
 var QUANTIZED_ERC20_INIT_CODE_HASH = '0xcd4902b65e1285dd3266dd5a6212b18ff94b962e082ca6cd0a3c4538738b4a96';
+var QuantizeType;
+
+(function (QuantizeType) {
+  QuantizeType[QuantizeType["QUANTIZE"] = 0] = "QUANTIZE";
+  QuantizeType[QuantizeType["QUANTIZE_ETH"] = 1] = "QUANTIZE_ETH";
+  QuantizeType[QuantizeType["DEQUANTIZE"] = 2] = "DEQUANTIZE";
+})(QuantizeType || (QuantizeType = {})); // exports for internal consumption
 
 function _inheritsLoose(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
@@ -137,51 +145,6 @@ var InsufficientQuantaAvailableError = /*#__PURE__*/function (_Error) {
   return InsufficientQuantaAvailableError;
 }( /*#__PURE__*/_wrapNativeSuper(Error));
 
-/**
- * Represents a trade executed against a list of pairs.
- * Does not account for slippage, i.e. trades that front run this trade and move the price.
- */
-
-var Quantize = /*#__PURE__*/function () {
-  function Quantize(amount, qType) {
-    this.token = amount instanceof sdkCore.TokenAmount ? amount.token : undefined;
-    this.quantizeType = qType;
-    this.amount = amount;
-  }
-  /**
-   * Constructs a quantize op given a token and an amount
-   * @param route route of the exact in trade
-   * @param amountIn the amount being passed in
-   */
-
-
-  Quantize.quantize = function quantize(amountIn) {
-    return new Quantize(amountIn, QuantizeType.QUANTIZE);
-  }
-  /**
-   * Constructs a quantize op given a token and an amount
-   * @param route route of the exact in trade
-   * @param amountIn the amount being passed in
-   */
-  ;
-
-  Quantize.quantizeEth = function quantizeEth(amountIn) {
-    return new Quantize(amountIn, QuantizeType.QUANTIZE_ETH);
-  }
-  /**
-   * Constructs a dequantize op given a token and an amount
-   * @param route route of the exact in trade
-   * @param amountIn the amount being passed in
-   */
-  ;
-
-  Quantize.dequantize = function dequantize(amountIn) {
-    return new Quantize(amountIn, QuantizeType.DEQUANTIZE);
-  };
-
-  return Quantize;
-}();
-
 var _QUANTA;
 var computeQuantizedAddress = function computeQuantizedAddress(_ref) {
   var tokenAddress = _ref.tokenAddress;
@@ -248,6 +211,68 @@ function currencyEquals(currencyA, currencyB) {
 }
 var QUANTA = (_QUANTA = {}, _QUANTA[sdkCore.ChainId.MAINNET] = /*#__PURE__*/new QuantizedToken(sdkCore.ChainId.MAINNET, QUANTA_ADDRESS, 18, 'QUANTA', 'Quanta'), _QUANTA[sdkCore.ChainId.ROPSTEN] = /*#__PURE__*/new QuantizedToken(sdkCore.ChainId.ROPSTEN, QUANTA_ADDRESS, 18, 'QUANTA', 'Quanta'), _QUANTA[sdkCore.ChainId.RINKEBY] = /*#__PURE__*/new QuantizedToken(sdkCore.ChainId.RINKEBY, QUANTA_ADDRESS, 18, 'QUANTA', 'Wrapped Ether'), _QUANTA[sdkCore.ChainId.GÖRLI] = /*#__PURE__*/new QuantizedToken(sdkCore.ChainId.GÖRLI, QUANTA_ADDRESS, 18, 'QUANTA', 'Wrapped QUANTA'), _QUANTA[sdkCore.ChainId.KOVAN] = /*#__PURE__*/new QuantizedToken(sdkCore.ChainId.KOVAN, QUANTA_ADDRESS, 18, 'QUANTA', 'Wrapped QUANTA'), _QUANTA);
 
+/**
+ * Given a currency amount and a chain ID, returns the equivalent representation as the token amount.
+ * In other words, if the currency is ETHER, returns the WETH9 token amount for the given chain. Otherwise, returns
+ * the input currency amount.
+ */
+
+function quantizedAmount(currencyAmount, chainId) {
+  if (currencyAmount instanceof sdkCore.TokenAmount) return currencyAmount;
+  if (currencyAmount.currency === sdkCore.ETHER) return new sdkCore.TokenAmount(QUANTA[chainId], currencyAmount.raw);
+    invariant(false, 'CURRENCY')  ;
+}
+function quantizedCurrency(currency, chainId) {
+  if (currency instanceof sdkCore.Token) return currency;
+  if (currency === sdkCore.ETHER) return QUANTA[chainId];
+    invariant(false, 'CURRENCY')  ;
+}
+/**
+ * Represents a trade executed against a list of pairs.
+ * Does not account for slippage, i.e. trades that front run this trade and move the price.
+ */
+
+var Quantize = /*#__PURE__*/function () {
+  function Quantize(token, amount, quantizeType) {
+    this.token = token;
+    this.tradeType = quantizeType;
+    this.inputAmount = quantizeType === QuantizeType.QUANTIZE || QuantizeType.DEQUANTIZE ? amount : sdkCore.CurrencyAmount.ether(amount.raw);
+    this.outputAmount = quantizeType === QuantizeType.QUANTIZE || QuantizeType.DEQUANTIZE ? amount : sdkCore.CurrencyAmount.ether(amount.raw);
+  }
+  /**
+   * Constructs an exact in trade with the given amount in and route
+   * @param route route of the exact in trade
+   * @param amountIn the amount being passed in
+   */
+
+
+  Quantize.quantize = function quantize(token, amountIn) {
+    return new Quantize(token, amountIn, QuantizeType.QUANTIZE);
+  }
+  /**
+   * Constructs an exact in trade with the given amount in and route
+   * @param route route of the exact in trade
+   * @param amountIn the amount being passed in
+   */
+  ;
+
+  Quantize.quantizeEth = function quantizeEth(token, amountIn) {
+    return new Quantize(token, amountIn, QuantizeType.QUANTIZE_ETH);
+  }
+  /**
+   * Constructs an exact in trade with the given amount in and route
+   * @param route route of the exact in trade
+   * @param amountIn the amount being passed in
+   */
+  ;
+
+  Quantize.dequantize = function dequantize(token, amountIn) {
+    return new Quantize(token, amountIn, QuantizeType.DEQUANTIZE);
+  };
+
+  return Quantize;
+}();
+
 exports.FACTORY_ADDRESS = FACTORY_ADDRESS;
 exports.FEETRACKER_ADDRESS = FEETRACKER_ADDRESS;
 exports.InsufficientQuantaAvailableError = InsufficientQuantaAvailableError;
@@ -259,4 +284,6 @@ exports.Quantize = Quantize;
 exports.QuantizedToken = QuantizedToken;
 exports.computeQuantizedAddress = computeQuantizedAddress;
 exports.currencyEquals = currencyEquals;
+exports.quantizedAmount = quantizedAmount;
+exports.quantizedCurrency = quantizedCurrency;
 //# sourceMappingURL=sdk.cjs.development.js.map
