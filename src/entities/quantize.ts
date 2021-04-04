@@ -1,16 +1,13 @@
 import {
   CurrencyAmount,
+  TokenAmount,
+  Token
 } from '@uniswap/sdk-core'
-
-import {
-  QuantizedToken,
-} from '@quantized/sdk-core'
 
 export declare enum QuantizeType {
   QUANTIZE = 0,
   QUANTIZE_ETH = 1,
   DEQUANTIZE = 2,
-  DEQUANTIZE_WITH_ETH = 3
 }
 
 /**
@@ -21,23 +18,24 @@ export class Quantize {
   /**
    * The route of the trade, i.e. which pairs the trade goes through.
    */
-  public readonly token: QuantizedToken
+  public readonly token: Token | undefined
   /**
    * The type of the quantization, quantize, dequantize, quantizeEth, dequantizeWithEth
    */
   public readonly quantizeType: QuantizeType
+  
   /**
    * The input amount for the trade assuming no slippage.
    */
-  public readonly amount: CurrencyAmount
+  public readonly amount: CurrencyAmount | TokenAmount
   
   /**
    * Constructs a quantize op given a token and an amount
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static quantize(token: QuantizedToken, amountIn: CurrencyAmount): Quantize {
-    return new Quantize(token, amountIn, QuantizeType.QUANTIZE)
+  public static quantize(amountIn: TokenAmount): Quantize {
+    return new Quantize(amountIn, QuantizeType.QUANTIZE)
   }
 
   /**
@@ -45,8 +43,8 @@ export class Quantize {
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static quantizeEth(token: QuantizedToken, amountIn: CurrencyAmount): Quantize {
-    return new Quantize(token, amountIn, QuantizeType.QUANTIZE_ETH)
+  public static quantizeEth(amountIn: CurrencyAmount): Quantize {
+    return new Quantize(amountIn, QuantizeType.QUANTIZE_ETH)
   }
 
   /**
@@ -54,21 +52,12 @@ export class Quantize {
    * @param route route of the exact in trade
    * @param amountIn the amount being passed in
    */
-  public static dequantize(token: QuantizedToken, amountIn: CurrencyAmount): Quantize {
-    return new Quantize(token, amountIn, QuantizeType.DEQUANTIZE)
+  public static dequantize(amountIn: TokenAmount): Quantize {
+    return new Quantize(amountIn, QuantizeType.DEQUANTIZE)
   }
 
-  /**
-   * Constructs a dequantize op given a token and an amount and uses ETH to pay for quanta
-   * @param route route of the exact in trade
-   * @param amountIn the amount being passed in
-   */
-  public static dequantizeWithEth(token: QuantizedToken, amountIn: CurrencyAmount): Quantize {
-    return new Quantize(token, amountIn, QuantizeType.DEQUANTIZE_WITH_ETH)
-  }
-
-  public constructor(token: QuantizedToken, amount: CurrencyAmount, qType: QuantizeType) {
-    this.token = token
+  public constructor(amount: TokenAmount | CurrencyAmount, qType: QuantizeType) {
+    this.token = amount instanceof TokenAmount ? amount.token : undefined
     this.quantizeType = qType
     this.amount = amount
   }

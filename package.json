@@ -24,7 +24,6 @@
     "dependencies": {
         "@ethersproject/address": "^5.0.0",
         "@ethersproject/solidity": "^5.0.0",
-        "@quantized/sdk-core": "github:quantized-finance/quantized-sdk-core",
         "@uniswap/sdk-core": "^1.0.9",
         "tiny-invariant": "^1.1.0",
         "tiny-warning": "^1.0.3"
